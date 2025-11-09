@@ -1,0 +1,26 @@
+server:
+  port: 8001
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springsecurity_1
+    username: postgres
+    password: ${MYSQL_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Options: none, update, create, create-drop
+    show-sql: true # Set to false in production environments
+    properties:
+      hibernate:
+        format_sql: true # Set to false in production environments
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+
+# JWT
+jwt:
+  secret: Z3R5Y3ZSeWZubHh4ZlU0Y0VIM2Rxd3Z5aWdzY2F2a0lmRmxkUllpQk5MZjZxYQ==
+  access-token:
+    expiration: 120000 #2 MINS
+  refresh-token:
+    expiration: 600000 #8 MINS
