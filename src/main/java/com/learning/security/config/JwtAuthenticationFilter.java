@@ -1,5 +1,7 @@
 package com.learning.security.config;
 
+import com.learning.security.entity.Token;
+import com.learning.security.repository.TokenRepository;
 import com.learning.security.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,12 +19,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final TokenRepository tokenRepository;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -48,7 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //if email not null and user is not logged in(no authentication)
         if(userEmail!=null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            if(jwtService.isTokenValid(jwtToken, userDetails)){
+
+            if(jwtService.isTokenValid(jwtToken, userDetails) && isTokenValidInRepo(jwtToken)){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null, //we don't keep credentials in token so null
@@ -69,4 +74,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
 
     }
+
+    private boolean isTokenValidInRepo(String token){
+        Optional<Token> tokenInRepo = tokenRepository.findByToken(token);
+        return tokenInRepo.isPresent() && !tokenInRepo.get().isRevoked() && !tokenInRepo.get().isExpired();
+    }
+
 }
