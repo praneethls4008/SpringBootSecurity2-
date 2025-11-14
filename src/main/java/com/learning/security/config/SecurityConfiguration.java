@@ -19,11 +19,13 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
+    private final JwtLogoutHandler jwtLogoutHandler;
 
     @Bean
     @Order(1)
     SecurityFilterChain authChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
+        httpSecurity
                 .securityMatcher("/api/v1/auth/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
@@ -31,24 +33,35 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest()
                         .permitAll()
-                )
-                .build();
+                );
+
+        httpSecurity.logout(logout -> logout
+                        .logoutUrl("/api/v1/auth/logout")
+                        .addLogoutHandler(jwtLogoutHandler)
+                        .logoutSuccessHandler(jwtLogoutSuccessHandler)
+                );
+
+        return httpSecurity.build();
     }
 
 
     @Bean
     @Order(2)
     SecurityFilterChain jwtPrivateChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
+        httpSecurity
                 .securityMatcher("/api/v1/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                );
+
+        httpSecurity
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return httpSecurity.build();
+
     }
 
 }
