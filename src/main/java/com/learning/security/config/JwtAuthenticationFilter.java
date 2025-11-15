@@ -2,7 +2,7 @@ package com.learning.security.config;
 
 import com.learning.security.entity.Token;
 import com.learning.security.repository.TokenRepository;
-import com.learning.security.service.JwtService;
+import com.learning.security.service.JwtAccessTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -25,7 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final JwtAccessTokenService jwtAccessTokenService;
     private final TokenRepository tokenRepository;
     private final UserDetailsService userDetailsService;
 
@@ -38,6 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwtToken;
         final String userEmail;
 
+        System.out.println("Inside JWT_FILTER_CHAIN");
+
         //if authHeader is null or authHeader does start with Bearer skip filter and continue to next filter
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
             filterChain.doFilter(request, response);
@@ -47,13 +48,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         //Bearer jwt_actual_token
         jwtToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwtToken);
+        userEmail = jwtAccessTokenService.extractUsername(jwtToken);
 
         //if email not null and user is not logged in(no authentication)
         if(userEmail!=null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            if(jwtService.isTokenValid(jwtToken, userDetails) && isTokenValidInRepo(jwtToken)){
+            if(jwtAccessTokenService.isTokenValid(jwtToken, userDetails) && isTokenValidInRepo(jwtToken)){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null, //we don't keep credentials in token so null

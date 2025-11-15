@@ -18,9 +18,12 @@ spring:
 
 
 # JWT
-jwt:
-  secret: Z3R5Y3ZSeWZubHh4ZlU0Y0VIM2Rxd3Z5aWdzY2F2a0lmRmxkUllpQk5MZjZxYQ==
-  access-token:
-    expiration: 120000 #2 MINS
-  refresh-token:
-    expiration: 600000 #8 MINS
+application:
+  security:
+    jwt:
+      access-token:
+        secret: Z3R5Y3ZSeWZubHh4ZlU0Y0VIM2Rxd3Z5aWdzY2F2a0lmRmxkUllpQk5MZjZxYQ==
+        expiration: 300000 #4 MINS
+      refresh-token:
+        secret: B3R5D3VSeWZubGh4ZlU0Y0VIM2RxD3W5aWdJY2F2a0lmMmxTUllzQk5MZjZxYQ==
+        expiration: 800000 #10 MINS
