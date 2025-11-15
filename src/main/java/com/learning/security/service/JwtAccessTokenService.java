@@ -16,16 +16,13 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-public class JwtService {
+public class JwtAccessTokenService {
 
-    @Value("${jwt.secret}")
+    @Value("${application.security.jwt.access-token.secret}")
     private String SECRET_KEY;
 
-    @Value("${jwt.access-token.expiration}")
+    @Value("${application.security.jwt.access-token.expiration}")
     private long accessTokenExpiration; // milliseconds
-
-    @Value("${jwt.refresh-token.expiration}")
-    private long refreshTokenExpiration;
 
     public String extractUsername(String token){
         return extractClaim(token, Claims::getSubject);
@@ -57,18 +54,22 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    public String generateToken(
+    public String generateToken(Map<String, Object> extraClaims,UserDetails userDetails)
+    {
+        return buildToken(extraClaims, userDetails,  accessTokenExpiration);
+    }
+
+    private String buildToken(
             Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ){
+            UserDetails userDetails,
+            long expiration){
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSecretKey(), Jwts.SIG.HS256)
                 .compact();
-
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails){
