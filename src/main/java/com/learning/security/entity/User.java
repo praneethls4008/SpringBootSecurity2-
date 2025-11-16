@@ -2,10 +2,8 @@ package com.learning.security.entity;
 
 import com.learning.security.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.repository.cdi.Eager;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Data //creates getters seeters to string hash
+@Getter
+@Setter
 @Builder //helps in cretes builder style object creation
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,9 +22,11 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue
+    @Column(unique = true)
     private Integer id;
     private String firstname;
     private String lastname;
+    @Column(unique = true)
     private String email;
     private String password;
 
@@ -33,12 +34,12 @@ public class User implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Token> tokens;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return role.getAuthorities();
     }
 
     @Override
