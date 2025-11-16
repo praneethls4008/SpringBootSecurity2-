@@ -2,13 +2,11 @@ package com.learning.security.entity;
 
 import com.learning.security.enums.TokenType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +16,7 @@ public class Token {
 
     @Id
     @GeneratedValue
+    @Column(unique = true)
     private Integer id;
 
     private String token;
@@ -31,6 +30,7 @@ public class Token {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User user;
 
 }

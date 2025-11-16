@@ -1,8 +1,10 @@
 package com.learning.security.config;
 
 import com.learning.security.entity.Token;
+import com.learning.security.entity.User;
 import com.learning.security.repository.TokenRepository;
 import com.learning.security.service.JwtAccessTokenService;
+import com.learning.security.service.UserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,9 +12,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -53,7 +55,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //if email not null and user is not logged in(no authentication)
         if(userEmail!=null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
             if(jwtAccessTokenService.isTokenValid(jwtToken, userDetails) && isTokenValidInRepo(jwtToken)){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -70,6 +71,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
             }
+        }
+
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null) {
+            System.out.println("[DEBUG] Debugging Auth in JwtAuthenticationFilter.class");
+            System.out.println("[DEBUG] Authentication is NULL");
+        } else {
+            System.out.println("[DEBUG] Debugging Auth in JwtAuthenticationFilter.class");
+            System.out.println("[DEBUG] Authenticated user = " + auth.getName());
+            System.out.println("[DEBUG] Authorities = " + auth.getAuthorities());
+            System.out.println("[DEBUG] Authorities = " + auth.getAuthorities());
+            System.out.println("[DEBUG] Auth class = " + auth.getClass().getSimpleName());
         }
 
         filterChain.doFilter(request, response);
