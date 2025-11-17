@@ -19,23 +19,37 @@ class UserDetailsServiceTest {
     @BeforeEach
     public void before() {
         User mockUser = User.builder()
-                .email("user@email.com")
+                .email("user_present@email.com")
                 .password("password")
                 .build();
 
+        //return Optional<User>
         BDDMockito
-                .given(userRepository.findByEmail("user@email.com"))
+                .given(userRepository.findByEmail("user_present@email.com"))
                 .willReturn(Optional.of(mockUser));
+
+        //return Optional<Empty>
+        BDDMockito
+                .given(userRepository.findByEmail("user_not_present@email.com"))
+                .willReturn(Optional.empty());
     }
 
     @Test
     @DisplayName("loadUserByUsername(): returns existing user")
-    void loadUserByUsername() {
-        var email = "user@email.com";
+    void loadUser_success() {
+        var email = "user_present@email.com";
         var result = this.userRepository.findByEmail(email);
         Assertions.assertThat(result.isPresent()).isEqualTo(true);
         Assertions.assertThat(result.get().getEmail()).isEqualTo(email);
-        
-
     }
+
+    @Test
+    @DisplayName("loadUserByUsername(): returns existing user")
+    void loadUser_notFound() {
+        var email = "user_not_present@email.com";
+        var result = this.userRepository.findByEmail(email);
+        Assertions.assertThat(result.isEmpty()).isEqualTo(true);
+        Assertions.assertThat(result.isPresent()).isEqualTo(false);
+    }
+
 }
