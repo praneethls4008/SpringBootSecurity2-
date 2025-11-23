@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,15 +26,41 @@ public class SecurityConfiguration {
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
     private final JwtLogoutHandler jwtLogoutHandler;
 
+
+    @Bean
+    @Order(0)
+    SecurityFilterChain swaggerChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .securityMatcher(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/swagger-resources/**",
+                        "/swagger-resources",
+                        "/webjars/**",
+                        "/v3/api-docs/swagger-config",
+                        "/swagger-resources/configuration/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().permitAll()
+                );
+        return httpSecurity.build();
+
+    }
+
     @Bean
     @Order(1)
     SecurityFilterChain authChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .securityMatcher("/api/v1/auth/**")
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest()
                         .permitAll()
                 );
@@ -53,9 +80,11 @@ public class SecurityConfiguration {
         httpSecurity
                 .securityMatcher("/api/v1/admin/**")
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 // :::::::::::::::::::::: METHOD MATCHERS MUST COME FIRST  :::::::::::::::::::::::::::
                                 //get req
@@ -96,9 +125,11 @@ public class SecurityConfiguration {
         httpSecurity
                 .securityMatcher("/api/v1/manager/**")
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 // :::::::::::::::::::::: METHOD MATCHERS MUST COME FIRST  :::::::::::::::::::::::::::
                                 //get req
@@ -151,9 +182,11 @@ public class SecurityConfiguration {
         httpSecurity
                 .securityMatcher("/api/v1/user/**")
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 // :::::::::::::::::::::: METHOD MATCHERS MUST COME FIRST  :::::::::::::::::::::::::::
                                 //get req
@@ -204,42 +237,20 @@ public class SecurityConfiguration {
 
     }
 
-    @Bean
-    @Order(5)
-    SecurityFilterChain swaggerChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .securityMatcher(
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/swagger-resources/**",
-                        "/swagger-resources",
-                        "/webjars/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll()
-                );
-
-        httpSecurity
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return httpSecurity.build();
-
-    }
-
 
     @Bean
-    @Order(6)
+    @Order(99)
     SecurityFilterChain allOtherRequestsChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .securityMatcher("/**")
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
+
                 );
 
         httpSecurity
